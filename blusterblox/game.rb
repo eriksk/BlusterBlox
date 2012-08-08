@@ -8,21 +8,21 @@ module BlusterBlox
 			self.caption = "Bluster Blox"
 
 			@top_color = Gosu::Color::WHITE
-			@bottom_color = Gosu::Color::GRAY
+			@bottom_color = Gosu::Color.new
+			@bottom_color.alpha = 255
+			@bottom_color.red = 100
+			@bottom_color.green = 149
+			@bottom_color.blue = 237
 
 			@game_area = Rectangle.new(0, 0, 16 * 128, 16 * 64)
-			puts @game_area
 
 			@font = Gosu::Font.new(self, Gosu::default_font_name, 24)
 
-			@cam = Camera.new(self)
+			@cam = Camera.new(self, @game_area)
 
 			tiles_tex = load_image_tiles('tiles', 16, 16)
-			@map = TileMap.new(tiles_tex)
-			@map.clear
-			63.times do |i|
-				@map.set_cell_raw(i, 32, 2)
-			end
+			@map = TileMap.new(tiles_tex, 1231, 128, 64)
+			#@map.clear
 
 			@current_cell = 1
 			@sounds = {
@@ -111,8 +111,8 @@ module BlusterBlox
 		end
 
 		def draw
-			draw_background
 			@cam.translate(){
+				draw_background
 				@map.draw
 				#draw_grid(32, 32, 16, Gosu::Color::RED)
 				draw_selected_cell()
@@ -127,6 +127,7 @@ module BlusterBlox
 		def draw_hud
 			@font.draw("x: #{mouse_x.to_i}, y: #{mouse_y.to_i}", 16, 16, 0, 1.0, 1.0, Gosu::Color::BLACK)
 			@font.draw("cell: #{@current_cell}", 16, 32, 0, 1.0, 1.0, Gosu::Color::BLACK)
+			@font.draw("cam: x: #{@cam.pos.x.to_i}, y: #{@cam.pos.y.to_i}", 16, 64, 0, 1.0, 1.0, Gosu::Color::BLACK)
 		end
 
 		def draw_selected_cell
@@ -146,9 +147,9 @@ module BlusterBlox
 		def draw_background
 			draw_quad(
 				0, 0, @top_color,
-				$WIDTH, 0, @top_color,
-				$WIDTH, $HEIGHT, @bottom_color,
-				0, $HEIGHT, @bottom_color,
+				@game_area.width, 0, @top_color,
+				@game_area.width, @game_area.height, @bottom_color,
+				0, @game_area.height, @bottom_color,
 			)
 		end
 

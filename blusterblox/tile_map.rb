@@ -3,13 +3,22 @@ module BlusterBlox
 
 		attr_accessor :textures
 
+
 		def initialize textures, seed = 0, width = 64, height = 64
+			@rand = Random.new(seed)
 			@textures = textures
 			@tile_width = textures.first.width
 			@tile_height = textures.first.height
 			@data = []
 			@width = width
 			@height = height
+
+			@grass = 9
+			@rock = 3
+			@brick = 7
+			@sand = 1
+			@water = 5
+
 			populate
 		end
 
@@ -22,11 +31,92 @@ module BlusterBlox
 		end
 
 		def populate
+			# just fill all with 0 first
 			@width.times do |x|
 				@height.times do |y|
-					@data.push((rand() * 3).to_i)
+					@data.push(0)
 				end
 			end
+
+			add_rock_floor()
+			add_grass()
+			add_water()
+		end		
+
+		def add_grass			
+			# add some grass
+			@width.times do |col|
+				row = get_top_cell_row(col)
+				grass_height = @rand.rand(2).to_i + 2
+				#row -= grass_height
+				grass_height.times do |i|
+					set_cell_raw(col, row, @grass)
+					row += 1
+				end
+			end
+		end
+
+		def add_water
+			waters = @rand.rand(4).to_i
+			waters.times do |q|
+				depth = @rand.rand(10) + 2
+				width = @rand.rand(10) + 2
+				start_col = @rand.rand(@width).to_i - width
+				min_row = get_top_cell_row(start_col) + 1
+				# calc lowest point, min_row
+				width.times do |col|
+					current_row = get_top_cell_row(start_col + col) + 1
+					if current_row > min_row
+						min_row = current_row
+					end
+				end
+
+				width.times do |col|
+					# clear up to start_col
+					min_row.times do |c|
+						remove_cell(start_col + col, c)
+					end
+
+					# set the water
+					depth.times do |i|
+						set_cell_raw(start_col + col, min_row + i, @water)
+					end
+				end
+			end
+		end
+
+		def add_rock_floor			
+			# fill floor with rock
+			row = (@height - @rand.rand(10).to_i) - 1
+			@width.times do |col|
+				val = @rand.rand()
+				if val > 0.8
+					row += 1
+				elsif val > 0.5
+					row -= 1
+				else
+				end
+				if row > @height - 1
+					row = @height - 1
+				end
+				_row = row
+				while _row < @height
+					set_cell_raw(col, _row, @rock)
+					_row += 1
+				end
+			end
+		end
+
+		def get_top_cell_row col
+			row = 0
+			while row < @height
+				if get_cell(col, row) != 0
+					return row
+				else
+					row += 1
+				end
+			end
+			@height - 1
 		end
 
 		def get_cell col, row
