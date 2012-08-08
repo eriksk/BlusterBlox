@@ -20,8 +20,8 @@ module BlusterBlox
 
 			@cam = Camera.new(self, @game_area)
 
-			tiles_tex = load_image_tiles('tiles', 16, 16)
-			@map = TileMap.new(tiles_tex, 1231, 128, 64)
+			@tiles_tex = load_image_tiles('tiles', 16, 16)
+			@map = TileMap.new(@tiles_tex, rand(Time.new.to_f * 1000.0), 128, 64)
 			#@map.clear
 
 			@current_cell = 1
@@ -66,6 +66,8 @@ module BlusterBlox
 					if @current_cell > MAX_CELLS - 1
 						@current_cell = 1
 					end
+				when Gosu::KbSpace
+					@map = TileMap.new(@tiles_tex, rand(Time.new.to_f * 1000.0), 128, 64)
 			end
 		end
 
@@ -114,7 +116,7 @@ module BlusterBlox
 			@cam.translate(){
 				draw_background
 				@map.draw
-				#draw_grid(32, 32, 16, Gosu::Color::RED)
+				# draw_grid(@game_area.width / 16, @game_area.height / 16, 16, Gosu::Color::RED)
 				draw_selected_cell()
 				@entities.each do |e|
 					e.draw
@@ -157,7 +159,7 @@ module BlusterBlox
 			cols.times do |x|
 				draw_line(x * cell_size, 0, color, x * cell_size, rows * cell_size, color)
 				rows.times do |y|
-					draw_line(0, y * cell_size, color, rows * cell_size, y * cell_size, color)
+					draw_line(0, y * cell_size, color, cols * cell_size, y * cell_size, color)
 				end
 			end
 		end
