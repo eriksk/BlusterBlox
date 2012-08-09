@@ -35,7 +35,9 @@ module BlusterBlox
 			}
 
 			@entities = []		
-			@player = Player.new(load_image_tiles('character', 16, 16), @map)
+			@player = Player.new(load_image_tiles('character', 16, 16), @map, {
+					:idle => nil
+				})
 			add_entity(@player)
 
 			@cursor = Entity.new(load_image('cursor'))

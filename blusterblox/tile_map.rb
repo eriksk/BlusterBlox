@@ -8,6 +8,12 @@ module BlusterBlox
 			@textures = textures
 			@tile_width = textures.first.width
 			@tile_height = textures.first.height
+			@bg_color = Gosu::Color.new()
+			clr = 100
+			@bg_color.red = clr
+			@bg_color.green = clr
+			@bg_color.blue = clr
+			@bg_color.alpha = 255
 			
 			@grass = 9
 			@rock = 3
@@ -20,6 +26,7 @@ module BlusterBlox
 			@rand = Random.new(seed)
 
 			@data = []
+			@bg_data = []
 			@width = width
 			@height = height
 
@@ -39,6 +46,7 @@ module BlusterBlox
 			@width.times do |x|
 				@height.times do |y|
 					@data.push(0)
+					@bg_data.push(0)
 				end
 			end
 
@@ -147,6 +155,7 @@ module BlusterBlox
 
 		def set_cell_raw col, row, cell
 			@data[col + row * @width] = cell
+			@bg_data[col + row * @width] = cell
 		end
 
 		# returns true if cell changed value
@@ -156,6 +165,7 @@ module BlusterBlox
 				# only set if has neighbour
 				if has_neighbour(col, row)
 					@data[index] = cell
+					@bg_data[index] = cell
 					true
 				else
 					false
@@ -179,13 +189,25 @@ module BlusterBlox
 			
 		end
 
-		def draw
+		def draw 
+			#TODO: optimize, only draw what is on screen
+
 			cell = 0
-			@width.times do |x|
-				@height.times do |y|
-					cell = @data[x + y * @width] - 1
+			
+			@width.times do |col|
+				@height.times do |row|
+					cell = @bg_data[col + row * @width] - 1
 					if cell >= 0
-						@textures[cell].draw(x * @tile_width, y * @tile_height, 0)
+						@textures[cell].draw(col * @tile_width, row * @tile_height, 0, 1, 1, @bg_color)
+					end
+				end
+			end
+
+			@width.times do |col|
+				@height.times do |row|
+					cell = @data[col + row * @width] - 1
+					if cell >= 0
+						@textures[cell].draw(col * @tile_width, row * @tile_height, 0)
 					end
 				end
 			end

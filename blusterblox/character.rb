@@ -5,7 +5,7 @@ module BlusterBlox
 			super(textures.first)
 			@map = map			
 			@animations = animations
-			@current_anim = @animations.first.key
+			@current_anim = @animations.first[0]
 			@grounded = false
 		end
 
@@ -16,20 +16,23 @@ module BlusterBlox
 		end
 
 		def land
-			
+			@grounded = true
+			@velocity.y = 0.0
 		end
 
 		def fall_off
-			
+			@grounded = false
+			@velocity.y = 0.0
 		end
 
-		def jump
-			
+		def jump force
+			@grounded = false
+			@velocity.y = -force
 		end
 
 		def update dt
 			do_collision_x(dt)
-			update_X(dt)
+			update_x(dt)
 			do_collision_y(dt)
 			update_y(dt)
 		end
@@ -46,7 +49,7 @@ module BlusterBlox
 			
 		end
 
-		def update_y
+		def update_y dt
 			
 		end
 	end
