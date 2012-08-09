@@ -1,7 +1,7 @@
 module BlusterBlox
         class Entity
 
-                attr_accessor :position, :velocity, :rotation, :scale, :texture, :width, :height, :origin
+                attr_accessor :position, :velocity, :rotation, :scale, :texture, :width, :height, :origin, :flipped
 
                 def initialize texture
                         @texture = texture
@@ -12,6 +12,7 @@ module BlusterBlox
                         @scale = 1.0
                         @width = texture.width
                         @height = texture.height
+                        @flipped = false
                         load
                 end
                 
@@ -28,7 +29,7 @@ module BlusterBlox
                 end
 
                 def draw
-                        @texture.draw_rot(@position.x, @position.y, 0, @rotation.to_degrees, @origin.x, @origin.y, @scale, @scale)
+                        @texture.draw_rot(@position.x, @position.y, 0, @rotation.to_degrees, @origin.x, @origin.y, @flipped ? -@scale : @scale, @scale)
                 end
         end
 end

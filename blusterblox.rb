@@ -6,6 +6,9 @@ require_relative 'blusterblox/helpers'
 require_relative 'blusterblox/camera'
 require_relative 'blusterblox/tile_map'
 require_relative 'blusterblox/rectangle'
+require_relative 'blusterblox/minimap'
+require_relative 'blusterblox/character'
+require_relative 'blusterblox/player'
 
 module BlusterBlox
 

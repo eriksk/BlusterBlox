@@ -3,6 +3,8 @@ module BlusterBlox
 		
 		MAX_CELLS = 21
 
+		STATES = [:edit, :play]
+
 		def initialize
 			super($WIDTH, $HEIGHT, $FULLSCREEN)
 			self.caption = "Bluster Blox"
@@ -21,8 +23,10 @@ module BlusterBlox
 			@cam = Camera.new(self, @game_area)
 
 			@tiles_tex = load_image_tiles('tiles', 16, 16)
-			@map = TileMap.new(@tiles_tex, rand(Time.new.to_f * 1000.0), 128, 64)
-			#@map.clear
+			@map = TileMap.new(@tiles_tex)
+			@map.load(rand(Time.new.to_f * 1000.0), 128, 64)
+			
+			@minimap = MiniMap.new(self, @map, @cam, @game_area)
 
 			@current_cell = 1
 			@sounds = {
@@ -31,9 +35,14 @@ module BlusterBlox
 			}
 
 			@entities = []		
+			@player = Player.new(load_image_tiles('character', 16, 16), @map)
+			add_entity(@player)
+
 			@cursor = Entity.new(load_image('cursor'))
 			@cursor.origin.x = 0.0
 			@cursor.origin.y = 0.0
+		
+			@state = 0
 		end
 
 		def add_entity(entity)
@@ -67,7 +76,13 @@ module BlusterBlox
 						@current_cell = 1
 					end
 				when Gosu::KbSpace
-					@map = TileMap.new(@tiles_tex, rand(Time.new.to_f * 1000.0), 128, 64)
+					@map.load(rand(Time.new.to_f * 1000.0), 128, 64)
+				when Gosu::KbTab
+					@state += 1
+					if @state > STATES.size - 1
+						@state = 0
+					end
+				else
 			end
 		end
 
@@ -81,9 +96,35 @@ module BlusterBlox
 		def update
 			dt = 16.0
 
+			case STATES[@state] 
+				when :edit
+					update_edit dt
+				when :play
+					update_play dt
+				else
+			end
+
+			@map.update dt
+			@minimap.update dt
+			@cam.update dt
+			@cursor.set_position(mouse_x.to_i, mouse_y.to_i)
+		end
+
+		def update_play dt
+			@entities.each do |e|
+				e.update dt
+			end				
+			@cam.move(@player.position.x, @player.position.y)
+		end
+
+		def update_edit dt
 			if button_down?Gosu::KbLeftControl
 				if button_down?Gosu::MsLeft
-					@cam.move_by(@cursor.position.x - mouse_x, @cursor.position.y - mouse_y)
+					col = (mouse_world_x / 16.0).to_i
+					row = (mouse_world_y / 16.0).to_i
+					if @map.remove_cell(col, row)
+						@sounds[:remove_cell].play()
+					end
 				end
 			else
 				if button_down?Gosu::MsLeft
@@ -93,30 +134,16 @@ module BlusterBlox
 						@sounds[:set_cell].play()
 					end	
 				end
-				if button_down?Gosu::MsRight
-					col = (mouse_world_x / 16.0).to_i
-					row = (mouse_world_y / 16.0).to_i
-					if @map.remove_cell(col, row)
-						@sounds[:remove_cell].play()
-					end
-				end
 			end
-		
-			@cursor.set_position(mouse_x.to_i, mouse_y.to_i)
-
-			@entities.each do |e|
-				e.update dt
-			end	
-
-			@map.update dt
-			@cam.update dt
+			if button_down?Gosu::MsRight
+				@cam.move_by(@cursor.position.x - mouse_x, @cursor.position.y - mouse_y)
+			end
 		end
 
 		def draw
 			@cam.translate(){
 				draw_background
 				@map.draw
-				# draw_grid(@game_area.width / 16, @game_area.height / 16, 16, Gosu::Color::RED)
 				draw_selected_cell()
 				@entities.each do |e|
 					e.draw
@@ -127,9 +154,11 @@ module BlusterBlox
 		end
 
 		def draw_hud
+			@minimap.draw
 			@font.draw("x: #{mouse_x.to_i}, y: #{mouse_y.to_i}", 16, 16, 0, 1.0, 1.0, Gosu::Color::BLACK)
-			@font.draw("cell: #{@current_cell}", 16, 32, 0, 1.0, 1.0, Gosu::Color::BLACK)
+			@font.draw("cell: #{@current_cell}", 16, 42, 0, 1.0, 1.0, Gosu::Color::BLACK)
 			@font.draw("cam: x: #{@cam.pos.x.to_i}, y: #{@cam.pos.y.to_i}", 16, 64, 0, 1.0, 1.0, Gosu::Color::BLACK)
+			@font.draw("State: #{STATES[@state]}", 16, 82, 0, 1, 1, Gosu::Color::BLACK)
 		end
 
 		def draw_selected_cell

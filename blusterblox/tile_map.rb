@@ -1,25 +1,29 @@
 module BlusterBlox
 	class TileMap
 
-		attr_accessor :textures
+		attr_accessor :textures, :data, :width, :height
 
 
-		def initialize textures, seed = 0, width = 64, height = 64
-			@rand = Random.new(seed)
+		def initialize textures
 			@textures = textures
 			@tile_width = textures.first.width
 			@tile_height = textures.first.height
-			@data = []
-			@width = width
-			@height = height
-
+			
 			@grass = 9
 			@rock = 3
 			@brick = 7
 			@sand = 1
 			@water = 5
+		end
+		
+		def load seed = 0, width = 64, height = 64
+			@rand = Random.new(seed)
 
-			populate
+			@data = []
+			@width = width
+			@height = height
+
+			populate			
 		end
 
 		def clear
